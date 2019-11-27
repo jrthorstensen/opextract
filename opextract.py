@@ -994,12 +994,12 @@ if __name__ == '__main__':
     ### These parameters control diagnostic views and writing images of subtracted data,
     ### smoothed data, and sofware aperture.
 
-    parser.add_argument('--diagnostic', '-d', help="Make diagnostic images and plots", action = 'store_true')
+    parser.add_argument('--diagnostic', '-d', help="Make diagnostic images and plots", action='store_true')
     # You can also view line-by-line plots of the data, profile, and included pixels.
     parser.add_argument('--startplot', '-s', help="Starting line for cross-section diagnostic",
         type=int, default=0)
     parser.add_argument('--endplot', '-e', help="ending line for cross-section diagnostic",
-         type = int, default=0)
+         type=int, default=0)
 
     ###
 
