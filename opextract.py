@@ -185,84 +185,83 @@ if __name__ == '__main__':
 
 class aperture_params:
     """parameters read from an IRAF ap database file."""
-    def __init__(self, froot = "", dispaxis = 2):
-        if froot != "":
+    def __init__(self, froot="", dispaxis=2):
+        if froot:
             froot = froot.replace(".fits", "")
-            apf = open("database/ap%s" % imroot, "r")
             reading_coeffs = False  # coeffs get parsed differently.
             ncoeffs = 0
             self.coeffs = []
             reading_background = False
-            apf = open("database/ap%s" % imroot, "r")
-            for l in apf:
-                if l[0] != '#':
-                    if 'background' in l:
+            with open("database/ap%s" % imroot, "r") as apf:
+               for l in apf:
+                  if l[0] != '#':
+                     if 'background' in l:
                         reading_background = True
-                    if 'axis' in l:
-                        reading_background = False
-                    if 'curve' in l:
-                        reading_coeffs = True
-                        reading_background = False # just in case.
-                    x = l.split()
-                    if len(x) > 0: # no blank lines
-                        if 'image' in x[0]: self.imroot = x[1]
-                        if 'aperture' in x[0]:
-                            self.apnum = int(x[1])
-                            if self.apnum > 1:
-                                print("Warning -- apnum > 1!")
-                                print("Multiple apertures are not implemented.")
-                        if 'enter' in x[0]:
-                            if dispaxis == 2:
-                                self.center = float(x[1])
-                                self.displine = float(x[2])
-                            else:
-                                self.center = float(x[2])
-                                self.displine = float(x[1])
-                        if 'low' in x[0] and 'reject' not in x[0]:
-                            # print(l, x)
-                            if dispaxis == 2:
-                                self.aplow = float(x[1])
-                                self.lowline = float(x[2])
-                            else:
-                                self.aplow = float(x[2])
-                                self.lowline = float(x[1])
-                        if 'high' in x[0] and 'reject' not in x[0]:
-                            if dispaxis == 2:
-                                self.aphigh = float(x[1])
-                                self.highline = float(x[2])
-                            else:
-                                self.aphigh = float(x[2])
-                                self.highline = float(x[1])
-                        if reading_background:
-                            if 'sample' in x[0]:  # this is not consistently formatted.  Ugh.
-                                self.bckgrintervals = []
-                                if len(x) == 2:   # lower and upper joined by comma and no space
-                                    y = x[1].split(',')
-                                else :            # lower and upper parts space-separated.
-                                    y = x[1:]
-                                for yy in y:
-                                    z = yy.split(':')
-                                    # print(z)
-                                    self.bckgrintervals.append([float(z[0]), float(z[1])])
-                            if 'function' in x[0]:
-                                self.bckgrfunc = x[1]
-                            if 'order' in x[0]:
-                                self.bckgrfunc_iraforder = int(x[1])
-                            if 'niterate' in x[0]:
-                                self.bckgr_niterate = int(x[1])
-                            # rejecting both low and high pixels is a bit awkward later.
-                            # low pixels are not much of a problem, usually, so didn't
-                            # implement a low-reject scheme.
-                            #if 'low_reject' in x[0]:
-                            #    self.bckgr_low_reject = float(x[1])
-                            if 'high_reject' in x[0]:
-                                self.bckgr_high_reject = float(x[1])
-                        if reading_coeffs and 'curve' not in l:
-                            self.coeffs.append(float(x[0]))
+                     if 'axis' in l:
+                         reading_background = False
+                     if 'curve' in l:
+                         reading_coeffs = True
+                         reading_background = False # just in case.
+                     x = l.split()
+                     if x: # no blank lines
+                         if 'image' in x[0]:
+                            self.imroot = x[1]
+                         if 'aperture' in x[0]:
+                             self.apnum = int(x[1])
+                             if self.apnum > 1:
+                                 print("Warning -- apnum > 1!")
+                                 print("Multiple apertures are not implemented.")
+                         if 'enter' in x[0]:
+                             if dispaxis == 2:
+                                 self.center = float(x[1])
+                                 self.displine = float(x[2])
+                             else:
+                                 self.center = float(x[2])
+                                 self.displine = float(x[1])
+                         if 'low' in x[0] and 'reject' not in x[0]:
+                             # print(l, x)
+                             if dispaxis == 2:
+                                 self.aplow = float(x[1])
+                                 self.lowline = float(x[2])
+                             else:
+                                 self.aplow = float(x[2])
+                                 self.lowline = float(x[1])
+                         if 'high' in x[0] and 'reject' not in x[0]:
+                             if dispaxis == 2:
+                                 self.aphigh = float(x[1])
+                                 self.highline = float(x[2])
+                             else:
+                                 self.aphigh = float(x[2])
+                                 self.highline = float(x[1])
+                         if reading_background:
+                             if 'sample' in x[0]:  # this is not consistently formatted.  Ugh.
+                                 self.bckgrintervals = []
+                                 if len(x) == 2:   # lower and upper joined by comma and no space
+                                     y = x[1].split(',')
+                                 else :            # lower and upper parts space-separated.
+                                     y = x[1:]
+                                 for yy in y:
+                                     z = yy.split(':')
+                                     # print(z)
+                                     self.bckgrintervals.append([float(z[0]), float(z[1])])
+                             if 'function' in x[0]:
+                                 self.bckgrfunc = x[1]
+                             if 'order' in x[0]:
+                                 self.bckgrfunc_iraforder = int(x[1])
+                             if 'niterate' in x[0]:
+                                 self.bckgr_niterate = int(x[1])
+                             # rejecting both low and high pixels is a bit awkward later.
+                             # low pixels are not much of a problem, usually, so didn't
+                             # implement a low-reject scheme.
+                             #if 'low_reject' in x[0]:
+                             #    self.bckgr_low_reject = float(x[1])
+                             if 'high_reject' in x[0]:
+                                 self.bckgr_high_reject = float(x[1])
+                         if reading_coeffs and 'curve' not in l:
+                             self.coeffs.append(float(x[0]))
 
-            apf.close()
-
-        else: printf("Need a valid image name.")
+        else:
+           print("Need a valid image name.")
 
     # These were all done neatly with f-string but reverted for
     # compatibility with python 2.7.  Even after
