@@ -121,66 +121,6 @@ from datetime import datetime
 
 import argparse
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "Use IRAF-defined aperture to optimally extract multispec from 2-d spectrum.")
-    parser.add_argument('imroot', help="Root image name without '.fits'")
-
-    ### ADJUSTABLE PARAMETER DEFAULTS ARE SET HERE.
-    ### Edit as needed once you've determined what's best for your data.
-
-    parser.add_argument('--axisdisp', '-a', help="1=dispersion along row, 2 = along col.", type=int, default=1)
-    parser.add_argument('--readnoise', '-r', help="read noise in electrons per pixel.", type=float, default=6)
-    parser.add_argument('--gain', '-g', help="CCD gain in electrons per ADU.", type=float, default=2.4)
-    parser.add_argument('--medfiltlen', '-m', help="median filter len for column fit", type=int, default=61)
-    parser.add_argument('--colfitord', '-c', help="polynomial order for column fit", type=int, default=15)
-    parser.add_argument('--badpixthresh', '-b', help="bad pixel rejection threshold", type=float, default=25.)
-    parser.add_argument('--production', '-p', help="Write .ms file (not .ms_test).", action='store_true')
-
-    ### These parameters control diagnostic views and writing images of subtracted data,
-    ### smoothed data, and sofware aperture.
-
-    parser.add_argument('--diagnostic', '-d', help="Make diagnostic images and plots", action = 'store_true')
-    # You can also view line-by-line plots of the data, profile, and included pixels.
-    parser.add_argument('--startplot', '-s', help="Starting line for cross-section diagnostic",
-        type=int, default=0)
-    parser.add_argument('--endplot', '-e', help="ending line for cross-section diagnostic",
-         type = int, default=0)
-
-    ###
-
-    args = parser.parse_args()
-
-    # a little logic to decode line-by-line plot stuff.
-    firstlinetoplot = int(args.startplot)
-    lastlinetoplot = int(args.endplot)
-    if firstlinetoplot != 0:
-       plot_sample = True
-       if lastlinetoplot == 0: # plot 10 lines if end not specified.
-           lastlinetoplot = firstlinetoplot + 10
-    else:
-       plot_sample = False
-
-    DISPAXIS = args.axisdisp  # 1 along rows (along X), 2 along cols (along Y)
-
-    readnoise = args.readnoise
-    gain = args.gain
-
-    apmedfiltlength = args.medfiltlen    # median filter length along dispersion
-    colfitorder = args.colfitord      # order of polynomial fit along columns.
-    scattercut = args.badpixthresh   # pixels that do not fit the profile (with
-                                     # badness of fit larger than this) are ignored.
-                                     # Horne's suggested value is 25.
-
-    ## Only one relatively minor HARD-CODED PARAMETER.
-
-    colfit_endmask = 10   # How many pixels to ignore at the ends of column
-
-    ## END OF HARD-CODED PARAMETERS ######
-
-    opextract(args.imroot, firstlinetoplot, lastlinetoplot, plot_sample, DISPAXIS, readnoise, gain, apmedfiltlength,
-              colfitorder, scattercut,
-              colfit_endmask=colfit_endmask, diagnostic=args.diagnostic, production=args.production)
-
 # Class to read and interpret IRAF aperture database files.
 
 class aperture_params:
@@ -192,7 +132,7 @@ class aperture_params:
             ncoeffs = 0
             self.coeffs = []
             reading_background = False
-            with open("database/ap%s" % imroot, "r") as apf:
+            with open("database/ap%s" % froot, "r") as apf:
                for l in apf:
                   if l[0] != '#':
                      if 'background' in l:
@@ -1034,3 +974,64 @@ def opextract(imroot, firstlinetoplot, lastlinetoplot, plot_sample, DISPAXIS, re
         plt.xlabel("Pixel")
         plt.ylabel("Counts")
         plt.show()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = "Use IRAF-defined aperture to optimally extract multispec from 2-d spectrum.")
+    parser.add_argument('imroot', help="Root image name without '.fits'")
+
+    ### ADJUSTABLE PARAMETER DEFAULTS ARE SET HERE.
+    ### Edit as needed once you've determined what's best for your data.
+
+    parser.add_argument('--axisdisp', '-a', help="1=dispersion along row, 2 = along col.", type=int, default=1)
+    parser.add_argument('--readnoise', '-r', help="read noise in electrons per pixel.", type=float, default=6)
+    parser.add_argument('--gain', '-g', help="CCD gain in electrons per ADU.", type=float, default=2.4)
+    parser.add_argument('--medfiltlen', '-m', help="median filter len for column fit", type=int, default=61)
+    parser.add_argument('--colfitord', '-c', help="polynomial order for column fit", type=int, default=15)
+    parser.add_argument('--badpixthresh', '-b', help="bad pixel rejection threshold", type=float, default=25.)
+    parser.add_argument('--production', '-p', help="Write .ms file (not .ms_test).", action='store_true')
+
+    ### These parameters control diagnostic views and writing images of subtracted data,
+    ### smoothed data, and sofware aperture.
+
+    parser.add_argument('--diagnostic', '-d', help="Make diagnostic images and plots", action = 'store_true')
+    # You can also view line-by-line plots of the data, profile, and included pixels.
+    parser.add_argument('--startplot', '-s', help="Starting line for cross-section diagnostic",
+        type=int, default=0)
+    parser.add_argument('--endplot', '-e', help="ending line for cross-section diagnostic",
+         type = int, default=0)
+
+    ###
+
+    args = parser.parse_args()
+
+    # a little logic to decode line-by-line plot stuff.
+    firstlinetoplot = int(args.startplot)
+    lastlinetoplot = int(args.endplot)
+    if firstlinetoplot != 0:
+       plot_sample = True
+       if lastlinetoplot == 0: # plot 10 lines if end not specified.
+           lastlinetoplot = firstlinetoplot + 10
+    else:
+       plot_sample = False
+
+    DISPAXIS = args.axisdisp  # 1 along rows (along X), 2 along cols (along Y)
+
+    readnoise = args.readnoise
+    gain = args.gain
+
+    apmedfiltlength = args.medfiltlen    # median filter length along dispersion
+    colfitorder = args.colfitord      # order of polynomial fit along columns.
+    scattercut = args.badpixthresh   # pixels that do not fit the profile (with
+                                     # badness of fit larger than this) are ignored.
+                                     # Horne's suggested value is 25.
+
+    ## Only one relatively minor HARD-CODED PARAMETER.
+
+    colfit_endmask = 10   # How many pixels to ignore at the ends of column
+
+    ## END OF HARD-CODED PARAMETERS ######
+
+    opextract(args.imroot, firstlinetoplot, lastlinetoplot, plot_sample, DISPAXIS, readnoise, gain, apmedfiltlength,
+              colfitorder, scattercut,
+              colfit_endmask=colfit_endmask, diagnostic=args.diagnostic, production=args.production)
