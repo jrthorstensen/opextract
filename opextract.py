@@ -157,7 +157,8 @@ if __name__ == '__main__':
        plot_sample = True
        if lastlinetoplot == 0: # plot 10 lines if end not specified.
            lastlinetoplot = firstlinetoplot + 10
-    else: plot_sample = False
+    else:
+       plot_sample = False
 
     DISPAXIS = args.axisdisp  # 1 along rows (along X), 2 along cols (along Y)
 
@@ -175,6 +176,10 @@ if __name__ == '__main__':
     colfit_endmask = 10   # How many pixels to ignore at the ends of column
 
     ## END OF HARD-CODED PARAMETERS ######
+
+    opextract(args.imroot, firstlinetoplot, lastlinetoplot, plot_sample, DISPAXIS, readnoise, gain, apmedfiltlength,
+              colfitorder, scattercut,
+              colfit_endmask=colfit_endmask, diagnostic=args.diagnostic, production=args.production)
 
 # Class to read and interpret IRAF aperture database files.
 
@@ -400,17 +405,17 @@ def fake_multispec_data(arrlist):
 
 
 ### START MAIN TASK.  Get the input file.
-if __name__ == '__main__':
-    imroot = args.imroot
+def opextract(imroot, firstlinetoplot, lastlinetoplot, plot_sample, DISPAXIS, readnoise, gain, apmedfiltlength,
+              codfitorder, scattercut, colfit_endmask=10, diagnostic=False, production=False):
 
     if '.fits' in imroot:
         imroot = imroot.replace(".fits", "")
     if '.fit' in imroot:
         imroot = imroot.replace(".fit", "")
 
-    apparams = aperture_params(froot = imroot, dispaxis = DISPAXIS)
+    apparams = aperture_params(froot=imroot, dispaxis=DISPAXIS)
 
-    if args.diagnostic:
+    if diagnostic:
         apparams.repeat_back()
 
     hdu = fits.open(imroot + '.fits')
@@ -469,7 +474,7 @@ if __name__ == '__main__':
     lowestap = aplimlowint.min()
     highestap = aplimhighint.max()   # extreme ends of aperture range
 
-    if args.diagnostic:
+    if diagnostic:
         print("lowestap ", lowestap, " highestap ", highestap)
 
     # Now compute and load the background spectrum by fitting
@@ -552,7 +557,7 @@ if __name__ == '__main__':
 
     # If keeping diagnostics, write a sky-subtracted image.
 
-    if args.diagnostic:
+    if diagnostic:
         # create a new hdu object around subbeddata
         hduout = fits.PrimaryHDU(subbeddata)
         # copy header stuff
@@ -582,7 +587,7 @@ if __name__ == '__main__':
 
     smootheddata = nd.median_filter(subbeddata, size=(apmedfiltlength, 1), mode='nearest')
 
-    if args.diagnostic:
+    if diagnostic:
         # write out median-smoothed array for diagnostic.
         hduout.data = smootheddata
         hduout.writeto(imroot + "_medfilt.fits", overwrite=True)
@@ -619,14 +624,14 @@ if __name__ == '__main__':
         # Diagnostics gives a nice plot of the columns and their fits, which can
         # be very enlightening.  First, the smoothed data:
 
-        if args.diagnostic:
+        if diagnostic:
             plt.plot(pixrange, smootheddata[:, i])
 
         legcoefs = leg.legfit(fitrange, smootheddata[firstfitpix:lastfitpix, i], colfitorder)
 
         thisfit = leg.legval(pixrange, legcoefs)
         # plot fit for diagnostic.
-        if args.diagnostic:
+        if diagnostic:
             plt.plot(pixrange, thisfit)
         apdata[:, i] = thisfit
 
@@ -652,7 +657,7 @@ if __name__ == '__main__':
     # along the dispersion together with the median-smoothed
     # spectrum.
 
-    if args.diagnostic:
+    if diagnostic:
         plt.title("Smoothed column data and poly fits.")
         plt.xlabel("Pixel along dispersion")
         plt.ylabel("Counts (not normalized)")
@@ -688,7 +693,7 @@ if __name__ == '__main__':
     fittedgau = fitter(model, aprange, goodapline)
     skyscalefac = rootpi * fittedgau.stddev.value
 
-    if args.diagnostic:
+    if diagnostic:
 
         # diagnostic to show fidicual profile.
 
@@ -893,7 +898,7 @@ if __name__ == '__main__':
             plt.title("Line %d  optextr %8.2f " % (lineindex, optimally_extracted[lineindex]))
             plt.show()
 
-    if args.diagnostic:
+    if diagnostic:
         # write aperture image (as amended by extraction) for a diagnostic.
         hduout.data = apdata
         hduout.writeto(imroot + "_aperture.fits", overwrite=True)
@@ -906,7 +911,7 @@ if __name__ == '__main__':
     # the cr-rejected straight sum.
 
     normfac = cr_corrected_overall_flux / np.sum(optimally_extracted)
-    if args.diagnostic:
+    if diagnostic:
         print("overall flux %8.0f, sum of optimal extr. %8.0f, norm. fac %7.5f" %
             (cr_corrected_overall_flux, np.sum(optimally_extracted), normfac))
     optimally_extracted *= normfac
@@ -1001,7 +1006,7 @@ if __name__ == '__main__':
     hduout.header['BANDID4'] = "Sigma per pixel."
     hduout.header['APNUM1'] = '1 1 %7.2f %7.2f' % (apparams.aplow, apparams.aphigh)
 
-    if args.production:
+    if production:
         hduout.writeto(imroot + ".ms.fits", overwrite=True)
     else:
         hduout.writeto(imroot + ".ms_test.fits", overwrite=True)
@@ -1018,7 +1023,7 @@ if __name__ == '__main__':
 
     # Admire the result.
 
-    if args.diagnostic:
+    if diagnostic:
         try:
             objname = hdr['OBJECT']
         except:
