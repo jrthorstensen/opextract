@@ -283,7 +283,7 @@ class aperture_params:
         for c in self.coeffs:
            print(c)
 
-    def evaluate_curve(self, pixlims = None):
+    def evaluate_curve(self, pixlims=None):
         ic = irafcurve(self.coeffs)
         # ic.repeat_back()
         y = ic.evaluate_by1(pixlims)
@@ -383,7 +383,7 @@ class irafcurve:
         elif self.curvetype == "chebyshev":
             return self.chpoly(x)
 
-    def evaluate_by1(self, pixlims = None): # evaluates curve for every pixel in range.
+    def evaluate_by1(self, pixlims=None): # evaluates curve for every pixel in range.
         if pixlims == None:
             firstpix = int(self.xrange[0] + 0.001)
             lastpix = int(self.xrange[1] + 0.001)
