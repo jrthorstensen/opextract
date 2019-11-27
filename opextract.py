@@ -596,7 +596,7 @@ if __name__ == '__main__':
     # Get the range of pixels along the dispersion.
     # OSMOS data needs extreme ends masked a bit.
 
-    pixrange = np.arange(smootheddata.shape[0], 1.)
+    pixrange = np.arange(0, smootheddata.shape[0], 1.)
 
     firstfitpix = colfit_endmask
     lastfitpix = smootheddata.shape[0] - colfit_endmask
